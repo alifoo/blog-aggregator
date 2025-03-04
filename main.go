@@ -103,6 +103,47 @@ func handlerRegister(s *state, cmd command) error {
 	return nil
 }
 
+func handlerReset(s *state, cmd command) error {
+	if cmd.arguments == nil {
+		return errors.New("no arguments passed to the handler")
+	}
+	err := s.db.DeleteAllUsers(context.Background())
+	if err != nil {
+		fmt.Printf("Error deleting all users:\n %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Deleted all users successfully.")
+	return nil
+}
+
+func handlerUsers(s *state, cmd command) error {
+	if cmd.arguments == nil {
+		return errors.New("no arguments passed to the handler")
+	}
+	users, err := s.db.GetUsers(context.Background())
+	if err != nil {
+		fmt.Printf("Error getting all users:\n %v\n", err)
+		os.Exit(1)
+	}
+
+	cfg, err := config.Read()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+
+	fmt.Println("All users:")
+	for _, u := range users {
+		if u.Name == cfg.CurrentUserName {
+			u.Name = u.Name + " (current)"
+		}
+		fmt.Println(u.Name)
+	}
+
+	return nil
+}
+
 func main() {
 	cfg, err := config.Read()
 	if err != nil {
@@ -137,6 +178,8 @@ func main() {
 
 	commands.register("login", handlerLogin)
 	commands.register("register", handlerRegister)
+	commands.register("reset", handlerReset)
+	commands.register("users", handlerUsers)
 
 	err = commands.run(&s, cmd)
 	if err != nil {
