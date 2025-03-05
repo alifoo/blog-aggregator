@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/alifoo/blog-aggregator/internal/config"
@@ -332,6 +333,32 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 	return nil
 }
 
+func handlerBrowse(s *state, cmd command, user database.User) error {
+	limit := int32(2)
+	if len(cmd.arguments) > 0 {
+		parsedLimit, err := strconv.Atoi(cmd.arguments[0])
+		if err != nil {
+			return fmt.Errorf("invalid limit value: %v", err)
+		}
+		limit = int32(parsedLimit)
+	}
+
+	params := database.GetPostsForUserParams{
+		UserID: user.ID,
+		Limit: limit,
+	}
+
+	posts, err := s.db.GetPostsForUser(context.Background(), params); if err != nil {
+		return err
+	}
+
+	fmt.Println("Current user posts:")
+	for _, p := range posts {
+		fmt.Println(p.Title)
+	}
+
+	return nil
+}
 func scrapeFeeds(s *state) error {
 	nextFeed, err := s.db.GetNextFeedToFetch(context.Background()); if err != nil {
 		return err
@@ -351,8 +378,42 @@ func scrapeFeeds(s *state) error {
 	feedItems := feed.Channel.Item
 
 	fmt.Println("Channel items titles:")
-	for i := range feedItems {
-		fmt.Println(feedItems[i].Title)
+	for _, post := range feedItems {
+		var description sql.NullString
+		if post.Description != "" {
+			description = sql.NullString{
+				String: post.Description,
+				Valid: true,
+			}
+		} else {
+			description = sql.NullString{
+				Valid: false,
+			}
+		}
+
+		pubTime, err := time.Parse(time.RFC1123Z, post.PubDate)
+		if err != nil {
+			fmt.Printf("Could not parse time %s: %v\n", post.PubDate, err)
+			pubTime = time.Now()
+		}
+
+		postParams := database.CreatePostParams{
+			ID: uuid.New(),
+			CreatedAt: time.Now(),
+			UpdatedAt: time.Now(),
+			Title: post.Title,
+			Url: post.Link,
+			Description: description,
+			PublishedAt: pubTime,
+			FeedID: nextFeed.ID,
+		}
+
+		post, err := s.db.CreatePost(context.Background(), postParams); if err != nil {
+			fmt.Printf("error creating post: %v\n", err)
+			return err
+		}
+
+		fmt.Printf("Post %v added.\n", post.Title)
 	}
 
 	return nil
@@ -410,6 +471,7 @@ func main() {
 	commands.register("follow", middlewareLoggedIn(handlerFollow))
 	commands.register("following", middlewareLoggedIn(handlerFollowing))
 	commands.register("unfollow", middlewareLoggedIn(handlerUnfollow))
+	commands.register("browse", middlewareLoggedIn(handlerBrowse))
 
 	err = commands.run(&s, cmd)
 	if err != nil {
