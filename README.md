@@ -17,7 +17,7 @@ The commands interact with a PostgreSQL database and allow users to register, lo
 
 ## Requirements
 
-To set up the project, you'll Postgresql and Go installed. Search the best method fit for your operating system.
+To set up the project, you'll need Postgresql and Go installed. Search the best method fit for your operating system.
 
 For Arch Linux, you can use pacman to install postgresql and go.
 `sudo pacman -S postgresql go`
