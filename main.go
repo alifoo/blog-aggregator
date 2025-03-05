@@ -199,12 +199,22 @@ func fetchFeed(ctx context.Context, feedURL string) (*RSSFeed, error) {
 }
 
 func handlerAgg(s *state, cmd command) error {
-	feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
-	if err != nil {
-		return fmt.Errorf("error fetching feed: %v", err)
+	if len(cmd.arguments) < 1 {
+		return errors.New("not enough arguments passed to the handler")
 	}
-	fmt.Println(feed)
-	return nil
+	time_between_reqs_duration, err := time.ParseDuration(cmd.arguments[0])
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Collecting feeds every %v\n", time_between_reqs_duration)
+
+	ticker := time.NewTicker(time_between_reqs_duration)
+	for ; ; <-ticker.C {
+		err := scrapeFeeds(s); if err != nil {
+			fmt.Println(err)
+		}
+	}
 }
 
 func handlerAddFeed(s *state, cmd command, user database.User) error {
@@ -319,6 +329,32 @@ func handlerUnfollow(s *state, cmd command, user database.User) error {
 	}
 
 	fmt.Println("Successfully unfollowed url.")
+	return nil
+}
+
+func scrapeFeeds(s *state) error {
+	nextFeed, err := s.db.GetNextFeedToFetch(context.Background()); if err != nil {
+		return err
+	}
+	fmt.Printf("Currently getting feed: %v\n", nextFeed.Name)
+
+	err = s.db.MarkFeedFetched(context.Background(), nextFeed.ID); if err != nil {
+		return err
+	}
+	fmt.Printf("Marked feed %v as fetched with current time.\n", nextFeed.Name)
+
+	feed, err := fetchFeed(context.Background(), nextFeed.Url); if err != nil {
+		return err
+	}
+	fmt.Printf("Currently fetching feed RSS Struct of title: %v\n", feed.Channel.Title)
+
+	feedItems := feed.Channel.Item
+
+	fmt.Println("Channel items titles:")
+	for i := range feedItems {
+		fmt.Println(feedItems[i].Title)
+	}
+
 	return nil
 }
 
