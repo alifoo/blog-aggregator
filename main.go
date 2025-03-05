@@ -271,7 +271,7 @@ func handlerFollow(s *state, cmd command) error {
 		return fmt.Errorf("error getting user info with current user name: %v", err)
 	}
 	feed, err := s.db.GetFeedByURL(context.Background(), url); if err != nil {
-		fmt.Errorf("error getting feed by url: %v", err)
+		return fmt.Errorf("error getting feed by url: %v", err)
 	}
 
 	params := database.CreateFeedFollowParams{
@@ -282,7 +282,11 @@ func handlerFollow(s *state, cmd command) error {
 		FeedID: feed.ID,
 	}
 
-	s.db.CreateFeedFollow(context.Background(), params)
+	created_feed_follow, err := s.db.CreateFeedFollow(context.Background(), params); if err != nil {
+		return fmt.Errorf("error creating feed follow: %v", err)
+	}
+
+	fmt.Printf("Successfully created the feed follow record with name %v for the current user, %v.\n", created_feed_follow.FeedName, created_feed_follow.UserName)
 
 	return nil
 }
@@ -326,6 +330,7 @@ func main() {
 	commands.register("agg", handlerAgg)
 	commands.register("addfeed", handlerAddFeed)
 	commands.register("feeds", handlerFeeds)
+	commands.register("follow", handlerFollow)
 
 	err = commands.run(&s, cmd)
 	if err != nil {
