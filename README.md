@@ -28,9 +28,28 @@ Manually create a config file in your home directory, ~/.gatorconfig.json, with 
 
 `{"db_url":"postgres://postgres:postgres@localhost:5432/gator?sslmode=disable"}`
 
-## Usage (commands)
+### Installation
 
-Commands are executed via command-line arguments:
+To install the gator CLI globally (so it can be run directly from any terminal session), you can use the go install command.
+
+Ensure your Go environment (installed in the previous step) supports go install. Then, run the following command to install gator:
+
+`go install github.com/alifoo/blog-aggregator@latest`
+
+This will install the gator command from the module github.com/alifoo/blog-aggregator and make it accessible in production, rather than just development mode.
+
+### Usage (commands)
+
+Commands are executed via command-line using two different methods. For production (best way) you can type via terminal within anywhere in your machine:
+
+`blog-aggregator <command> [arguments]`
+
+For example, to register a user named "Alice":
+
+`blog-aggregator register Alice`
+
+For development mode, clone the repo and access the project root, then execute:
+
 `go run . <command> [arguments]`
 
 For example, to register a user named "Alice":
