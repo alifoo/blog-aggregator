@@ -291,6 +291,23 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
+func handlerFollowing(s *state, cmd command) error {
+	currentUser, err := s.db.GetUser(context.Background(), s.configPointer.CurrentUserName); if err != nil {
+		return fmt.Errorf("error getting user info with current user name: %v", err)
+	}
+	currentUserFeeds, err := s.db.GetFeedFollowsForUser(context.Background(), currentUser.ID)
+	if err != nil {
+		return fmt.Errorf("error getting feed follows for current user: %v", err)
+	}
+
+	fmt.Println("Current user feeds:")
+	for _, c := range currentUserFeeds {
+		fmt.Println(c.FeedName)
+	}
+
+	return nil
+}
+
 func main() {
 	cfg, err := config.Read()
 	if err != nil {
@@ -331,6 +348,7 @@ func main() {
 	commands.register("addfeed", handlerAddFeed)
 	commands.register("feeds", handlerFeeds)
 	commands.register("follow", handlerFollow)
+	commands.register("following", handlerFollowing)
 
 	err = commands.run(&s, cmd)
 	if err != nil {
