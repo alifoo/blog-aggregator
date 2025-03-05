@@ -1,6 +1,6 @@
 # blog-aggregator (gator)
 
-Gator is a CLI utility, a RSS feed agreggator microservice built with go.
+Gator is a CLI-based RSS feed agreggator microservice built with go.
 
 Tools used:
 
@@ -34,59 +34,60 @@ Commands are executed via command-line arguments:
 `go run . <command> [arguments]`
 
 For example, to register a user named "Alice":
+
 `go run . register Alice`
 
 1. login
    `login <username>`
 
-_Logs in a user by setting their username in the configuration json._
+   _Logs in a user by setting their username in the configuration json._
 
 2. register
    `register <username>`
 
-_Creates a new user and sets them as the current user._
+   _Creates a new user and sets them as the current user._
 
 3. reset
    `reset`
 
-_Deletes all users from the database._
+   _Deletes all users from the database._
 
 4. users
    `users`
 
-_Lists all users in the system, marking the currently logged-in user._
+   _Lists all users in the system, marking the currently logged-in user._
 
 5. agg
    `agg <interval>`
 
-_Fetches RSS feeds at a specified interval (e.g., "30s" for 30 seconds)._
+   _Fetches RSS feeds at a specified interval (e.g., "30s" for 30 seconds)._
 
 6. addfeed
    `addfeed <feed_name> <feed_url>`
 
-_Adds a new RSS feed and follows it._
+   _Adds a new RSS feed and follows it._
 
 7. feeds
    `feeds`
 
-_Lists all available RSS feeds along with their owners._
+   _Lists all available RSS feeds along with their owners._
 
 8. follow
    `follow <feed_url>`
 
-_Follows an existing RSS feed._
+   _Follows an existing RSS feed._
 
 9. following
    `following`
 
-_Lists all feeds the current user is following._
+   _Lists all feeds the current user is following._
 
 10. unfollow
     `unfollow <feed_url>`
 
-_Unfollows a feed._
+    _Unfollows a feed._
 
 11. browse
     `browse [limit]`
 
-_Displays the latest posts from followed feeds, with an optional limit (default: 2)._
+    _Displays the latest posts from followed feeds, with an optional limit (default: 2)._
