@@ -256,7 +256,7 @@ func handlerFeeds(s *state, cmd command) error {
 		feedUser, err := s.db.GetUserById(context.Background(), f.UserID); if err != nil {
 			return fmt.Errorf("error getting user info by id: %v", err)
 		}
-		fmt.Printf("Name: %v, URL: %v, User: %v", f.Name, f.Url, feedUser.Name)
+		fmt.Printf("Name: %v, URL: %v, User: %v\n", f.Name, f.Url, feedUser.Name)
 	}
 
 	return nil
@@ -300,6 +300,25 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 		fmt.Println(c.FeedName)
 	}
 
+	return nil
+}
+
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	if len(cmd.arguments) < 1 {
+		return errors.New("not enough arguments passed to the handler")
+	}
+
+	url := cmd.arguments[0]
+
+	params := database.DeleteFeedFollowParams{
+		UserID: user.ID,
+		Url: url,
+	}
+	err := s.db.DeleteFeedFollow(context.Background(), params); if err != nil {
+		return fmt.Errorf("error deleting feed follow: %v", err)
+	}
+
+	fmt.Println("Successfully unfollowed url.")
 	return nil
 }
 
@@ -354,6 +373,7 @@ func main() {
 	commands.register("feeds", handlerFeeds)
 	commands.register("follow", middlewareLoggedIn(handlerFollow))
 	commands.register("following", middlewareLoggedIn(handlerFollowing))
+	commands.register("unfollow", middlewareLoggedIn(handlerUnfollow))
 
 	err = commands.run(&s, cmd)
 	if err != nil {
