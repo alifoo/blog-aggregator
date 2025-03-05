@@ -261,6 +261,32 @@ func handlerFeeds(s *state, cmd command) error {
 	return nil
 }
 
+func handlerFollow(s *state, cmd command) error {
+	if len(cmd.arguments) < 1 {
+		return errors.New("not enough arguments passed to the handler")
+	}
+	url := cmd.arguments[0]
+
+	currentUser, err := s.db.GetUser(context.Background(), s.configPointer.CurrentUserName); if err != nil {
+		return fmt.Errorf("error getting user info with current user name: %v", err)
+	}
+	feed, err := s.db.GetFeedByURL(context.Background(), url); if err != nil {
+		fmt.Errorf("error getting feed by url: %v", err)
+	}
+
+	params := database.CreateFeedFollowParams{
+		ID: uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID: currentUser.ID,
+		FeedID: feed.ID,
+	}
+
+	s.db.CreateFeedFollow(context.Background(), params)
+
+	return nil
+}
+
 func main() {
 	cfg, err := config.Read()
 	if err != nil {
